@@ -26,7 +26,7 @@ class AsmatQuizApp extends StatelessWidget {
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
         ),
-        cardTheme: CardTheme(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22))),
+        cardTheme: CardThemeData(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22))),
       ),
       home: const SplashScreen(navy: navy, gold: gold),
     );
@@ -70,7 +70,7 @@ class _SplashScreenState extends State<SplashScreen> {
               Container(
                 width: 124,
                 height: 124,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(.08), border: Border.all(color: widget.gold, width: 2)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: .08), border: Border.all(color: widget.gold, width: 2)),
                 child: Icon(Icons.lightbulb_rounded, size: 76, color: widget.gold),
               ),
               const SizedBox(height: 24),
@@ -219,8 +219,8 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(child: _menuCard(Icons.refresh_rounded, 'Reset Demo', Colors.redAccent, () async { await LocalState.resetDemo(); await _load(); })),
             ]),
             const SizedBox(height: 20),
-            Card(
-              color: const Color(0xFFFFF8DF),
+            const Card(
+              color: Color(0xFFFFF8DF),
               child: const Padding(padding: EdgeInsets.all(22), child: Row(children: [Icon(Icons.auto_awesome, color: Color(0xFFFFA000)), SizedBox(width: 14), Expanded(child: Text('Knowledge is power. Come back daily for a fresh 60-question challenge!', style: TextStyle(fontWeight: FontWeight.w700)))])),
             )
           ],
