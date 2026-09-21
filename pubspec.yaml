@@ -1,20 +1,22 @@
 name: asmat_gk_quiz
-description: Daily online GK quiz app starter for Asmat's World.
+description: Asmat's World - online daily general knowledge quiz app.
 publish_to: 'none'
-version: 0.1.0+1
+version: 1.0.0+10
 
 environment:
-  sdk: '>=3.4.0 <4.0.0'
+  sdk: '>=3.10.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  shared_preferences: ^2.3.2
+  supabase_flutter: ^2.17.2
+  google_mobile_ads: ^9.1.0
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true

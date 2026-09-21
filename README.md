@@ -1,42 +1,28 @@
-# Asmat's World - GK Quiz (Starter Build)
+# Asmat's World - GK Quiz (Final Online Architecture)
 
-This is the first runnable Flutter starter for the agreed app concept.
+A Flutter Android app for a daily online General Knowledge quiz.
 
-## Included now
-- Splash: **Welcome To Asmat's World**
-- Login/demo entry
-- Daily home dashboard
-- Exactly 60 General Knowledge questions
-- 1 daily free hint after check-in
-- Rewarded-ad placeholder for extra hints
-- Interstitial-ad placeholder after every 3 questions (20 breaks across 60 questions)
-- Score: +10 per correct answer
-- Result screen
-- Daily/Weekly/All-Time leaderboard UI
-- Daily completion lock (local demo persistence)
-- Profile screen
-- Demo reset button for development/testing
+## Final feature set
 
-## Run
-If you have Flutter installed:
+- Opening splash: **Welcome To Asmat's World**
+- Real email/password signup and login (Supabase Auth)
+- 60 fresh online GK questions per app day
+- Only one 60-question attempt per user per day
+- Continue Quiz resumes the server-side current question
+- Interstitial ad opportunity after every 3 answered questions (20 across 60 questions)
+- Daily check-in gives +1 free hint
+- Extra hint through optional rewarded ad
+- Hints Available counter on Home and Quiz screens
+- Daily / Weekly / All-Time leaderboard
+- My Stats, Check-in History and Settings
+- Protected Admin Panel for question editing, AI regeneration and user restrictions
+- Server-authoritative scoring and answer validation
+- Duplicate answer protection, sequence validation and suspicious-speed flagging
+- AI question generation through a Supabase Edge Function using Gemini
+- No demo login, no reset demo, no fake leaderboard and no local fake quiz data
 
-```bash
-flutter create .
-flutter pub get
-flutter run
-```
+## Important
 
-If `flutter create .` asks to overwrite files, keep the existing `lib/` and `pubspec.yaml` from this package.
+The APK can compile before cloud secrets are added, but it will show **Online Setup Required** until Supabase is configured. Real AdMob IDs should only be added after testing with Google's test ads.
 
-## Next integration layer
-The current build intentionally uses local/demo services so it runs before you provide cloud/ad credentials. Next we can connect:
-
-1. Firebase Authentication
-2. Firestore online question database
-3. Server-authoritative scores + anti-cheat
-4. Daily/weekly/all-time live leaderboard
-5. Google Mobile Ads (real interstitial + rewarded)
-6. Gemini/Groq backend for automatically preparing 60 daily GK questions
-7. Admin panel and moderation/approval controls
-
-**Important:** AI and ad API keys must stay on the backend, never inside the APK.
+See **FINAL_SETUP.md** for the exact mobile-friendly setup sequence.
