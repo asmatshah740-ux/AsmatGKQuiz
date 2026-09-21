@@ -221,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 20),
             const Card(
               color: Color(0xFFFFF8DF),
-              child: const Padding(padding: EdgeInsets.all(22), child: Row(children: [Icon(Icons.auto_awesome, color: Color(0xFFFFA000)), SizedBox(width: 14), Expanded(child: Text('Knowledge is power. Come back daily for a fresh 60-question challenge!', style: TextStyle(fontWeight: FontWeight.w700)))])),
+              child: Padding(padding: EdgeInsets.all(22), child: Row(children: [Icon(Icons.auto_awesome, color: Color(0xFFFFA000)), SizedBox(width: 14), Expanded(child: Text('Knowledge is power. Come back daily for a fresh 60-question challenge!', style: TextStyle(fontWeight: FontWeight.w700)))])),
             )
           ],
         ),
