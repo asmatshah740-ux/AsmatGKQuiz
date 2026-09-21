@@ -6,25 +6,41 @@ import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/setup_required_screen.dart';
 import 'screens/splash_screen.dart';
-import 'services/ad_service.dart';
 import 'widgets/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  var backendReady = false;
+  String? startupError;
+
   if (AppConfig.backendConfigured) {
-    await Supabase.initialize(
-      url: AppConfig.supabaseUrl,
-      anonKey: AppConfig.supabaseAnonKey,
-    );
-    await AdService.instance.initialize();
+    try {
+      await Supabase.initialize(
+        url: AppConfig.supabaseUrl,
+        anonKey: AppConfig.supabaseAnonKey,
+      );
+      backendReady = true;
+    } catch (e) {
+      startupError = 'Online backend could not start: $e';
+    }
   }
 
-  runApp(const AsmatQuizApp());
+  runApp(AsmatQuizApp(
+    backendReady: backendReady,
+    startupError: startupError,
+  ));
 }
 
 class AsmatQuizApp extends StatelessWidget {
-  const AsmatQuizApp({super.key});
+  const AsmatQuizApp({
+    super.key,
+    required this.backendReady,
+    this.startupError,
+  });
+
+  final bool backendReady;
+  final String? startupError;
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +48,23 @@ class AsmatQuizApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: "Asmat's World - GK Quiz",
       theme: AppTheme.light(),
-      home: const SplashRouter(),
+      home: SplashRouter(
+        backendReady: backendReady,
+        startupError: startupError,
+      ),
     );
   }
 }
 
 class SplashRouter extends StatefulWidget {
-  const SplashRouter({super.key});
+  const SplashRouter({
+    super.key,
+    required this.backendReady,
+    this.startupError,
+  });
+
+  final bool backendReady;
+  final String? startupError;
 
   @override
   State<SplashRouter> createState() => _SplashRouterState();
@@ -58,7 +84,10 @@ class _SplashRouterState extends State<SplashRouter> {
   @override
   Widget build(BuildContext context) {
     if (_showSplash) return const SplashScreen();
-    if (!AppConfig.backendConfigured) return const SetupRequiredScreen();
+
+    if (!AppConfig.backendConfigured || !widget.backendReady) {
+      return SetupRequiredScreen(startupError: widget.startupError);
+    }
 
     return StreamBuilder<AuthState>(
       stream: Supabase.instance.client.auth.onAuthStateChange,

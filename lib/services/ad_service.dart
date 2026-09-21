@@ -12,15 +12,34 @@ class AdService {
   RewardedAd? _rewarded;
   bool _loadingInterstitial = false;
   bool _loadingRewarded = false;
+  bool _initialized = false;
+  Future<bool>? _initializing;
 
-  Future<void> initialize() async {
-    await MobileAds.instance.initialize();
-    loadInterstitial();
-    loadRewarded();
+  Future<bool> initialize() {
+    if (_initialized) return Future<bool>.value(true);
+    final active = _initializing;
+    if (active != null) return active;
+
+    final future = _safeInitialize();
+    _initializing = future;
+    return future.whenComplete(() => _initializing = null);
   }
 
-  void loadInterstitial() {
-    if (_loadingInterstitial || _interstitial != null) return;
+  Future<bool> _safeInitialize() async {
+    try {
+      await MobileAds.instance.initialize();
+      _initialized = true;
+      _loadInterstitial();
+      _loadRewarded();
+      return true;
+    } catch (_) {
+      _initialized = false;
+      return false;
+    }
+  }
+
+  void _loadInterstitial() {
+    if (!_initialized || _loadingInterstitial || _interstitial != null) return;
     _loadingInterstitial = true;
     InterstitialAd.load(
       adUnitId: AppConfig.interstitialAdUnitId,
@@ -39,22 +58,25 @@ class AdService {
   }
 
   Future<void> showInterstitial() async {
+    if (!await initialize()) return;
+
     final ad = _interstitial;
     _interstitial = null;
     if (ad == null) {
-      loadInterstitial();
+      _loadInterstitial();
       return;
     }
+
     final completer = Completer<void>();
     ad.fullScreenContentCallback = FullScreenContentCallback<InterstitialAd>(
       onAdDismissedFullScreenContent: (shownAd) {
         shownAd.dispose();
-        loadInterstitial();
+        _loadInterstitial();
         if (!completer.isCompleted) completer.complete();
       },
       onAdFailedToShowFullScreenContent: (shownAd, _) {
         shownAd.dispose();
-        loadInterstitial();
+        _loadInterstitial();
         if (!completer.isCompleted) completer.complete();
       },
     );
@@ -62,8 +84,8 @@ class AdService {
     await completer.future;
   }
 
-  void loadRewarded() {
-    if (_loadingRewarded || _rewarded != null) return;
+  void _loadRewarded() {
+    if (!_initialized || _loadingRewarded || _rewarded != null) return;
     _loadingRewarded = true;
     RewardedAd.load(
       adUnitId: AppConfig.rewardedAdUnitId,
@@ -82,23 +104,26 @@ class AdService {
   }
 
   Future<bool> showRewarded() async {
+    if (!await initialize()) return false;
+
     final ad = _rewarded;
     _rewarded = null;
     if (ad == null) {
-      loadRewarded();
+      _loadRewarded();
       return false;
     }
+
     var earned = false;
     final completer = Completer<bool>();
     ad.fullScreenContentCallback = FullScreenContentCallback<RewardedAd>(
       onAdDismissedFullScreenContent: (shownAd) {
         shownAd.dispose();
-        loadRewarded();
+        _loadRewarded();
         if (!completer.isCompleted) completer.complete(earned);
       },
       onAdFailedToShowFullScreenContent: (shownAd, _) {
         shownAd.dispose();
-        loadRewarded();
+        _loadRewarded();
         if (!completer.isCompleted) completer.complete(false);
       },
     );
