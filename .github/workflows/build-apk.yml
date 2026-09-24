@@ -21,11 +21,11 @@ jobs:
       - name: Create Android platform files
         run: flutter create --platforms=android --org com.asmatworld --project-name asmat_gk_quiz .
 
-      - name: Configure Android app for AdMob TEST mode
+      - name: Configure Android + WorkManager compatibility
         run: python tool/configure_android.py
 
-      - name: Verify AdMob manifest
-        run: python tool/verify_admob_manifest.py
+      - name: Verify native compatibility patch
+        run: python tool/verify_android_fix.py
 
       - name: Install packages
         run: flutter pub get
