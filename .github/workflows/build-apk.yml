@@ -5,6 +5,12 @@ on:
   push:
     branches: [ "main", "master" ]
 
+env:
+  ADMOB_MODE: ${{ vars.ADMOB_MODE || 'test' }}
+  ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
+  ADMOB_INTERSTITIAL_ID: ${{ secrets.ADMOB_INTERSTITIAL_ID }}
+  ADMOB_REWARDED_ID: ${{ secrets.ADMOB_REWARDED_ID }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,10 +27,10 @@ jobs:
       - name: Create Android platform files
         run: flutter create --platforms=android --org com.asmatworld --project-name asmat_gk_quiz .
 
-      - name: Configure Android + WorkManager compatibility
+      - name: Configure Android
         run: python tool/configure_android.py
 
-      - name: Verify native compatibility patch
+      - name: Verify Android config
         run: python tool/verify_android_fix.py
 
       - name: Install packages
@@ -36,6 +42,22 @@ jobs:
       - name: Analyze project
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
+      - name: Choose AdMob IDs
+        run: |
+          if [ "$ADMOB_MODE" = "production" ]; then
+            if [ -z "$ADMOB_INTERSTITIAL_ID" ] || [ -z "$ADMOB_REWARDED_ID" ]; then
+              echo "Production AdMob IDs are missing."
+              exit 1
+            fi
+            echo "INTERSTITIAL_ID=$ADMOB_INTERSTITIAL_ID" >> "$GITHUB_ENV"
+            echo "REWARDED_ID=$ADMOB_REWARDED_ID" >> "$GITHUB_ENV"
+            echo "Building with PRODUCTION AdMob ad units."
+          else
+            echo "INTERSTITIAL_ID=ca-app-pub-3940256099942544/1033173712" >> "$GITHUB_ENV"
+            echo "REWARDED_ID=ca-app-pub-3940256099942544/5224354917" >> "$GITHUB_ENV"
+            echo "Building with Google TEST ad units."
+          fi
+
       - name: Build release APK
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -44,8 +66,8 @@ jobs:
           flutter build apk --release \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-            --dart-define=ADMOB_INTERSTITIAL_ID="ca-app-pub-3940256099942544/1033173712" \
-            --dart-define=ADMOB_REWARDED_ID="ca-app-pub-3940256099942544/5224354917"
+            --dart-define=ADMOB_INTERSTITIAL_ID="$INTERSTITIAL_ID" \
+            --dart-define=ADMOB_REWARDED_ID="$REWARDED_ID"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

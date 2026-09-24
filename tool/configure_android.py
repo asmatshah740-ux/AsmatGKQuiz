@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import re
 
 root = Path(__file__).resolve().parents[1]
@@ -9,10 +10,19 @@ proguard = root / "android" / "app" / "proguard-rules.pro"
 TEST_APP_ID = "ca-app-pub-3940256099942544~3347511713"
 WORK_VERSION = "2.11.2"
 
+mode = os.environ.get("ADMOB_MODE", "test").strip().lower()
+real_app_id = os.environ.get("ADMOB_APP_ID", "").strip()
+
+if mode == "production":
+    if not real_app_id.startswith("ca-app-pub-") or "~" not in real_app_id:
+        raise SystemExit("ADMOB_MODE=production but ADMOB_APP_ID is missing or invalid.")
+    chosen_app_id = real_app_id
+else:
+    chosen_app_id = TEST_APP_ID
+
 if not manifest.exists() or not gradle.exists():
     raise SystemExit("Android files not found. Run flutter create first.")
 
-# ---------- AndroidManifest ----------
 text = manifest.read_text()
 text = text.replace('android:label="asmat_gk_quiz"', 'android:label="Asmat World GK Quiz"')
 
@@ -39,11 +49,10 @@ if app_start == -1 or app_open_end == -1:
 admob_meta = (
     '\n        <meta-data\n'
     '            android:name="com.google.android.gms.ads.APPLICATION_ID"\n'
-    f'            android:value="{TEST_APP_ID}" />'
+    f'            android:value="{chosen_app_id}" />'
 )
 text = text[:app_open_end + 1] + admob_meta + text[app_open_end + 1:]
 
-# Supabase email confirmation deep link.
 scheme = "com.asmatworld.asmat_gk_quiz"
 host = "login-callback"
 if f'android:scheme="{scheme}"' not in text:
@@ -63,22 +72,17 @@ if f'android:scheme="{scheme}"' not in text:
 
 manifest.write_text(text)
 
-# ---------- Gradle ----------
 g = gradle.read_text()
-
-# Force a modern WorkManager version.
 dependency = f'implementation("androidx.work:work-runtime:{WORK_VERSION}")'
 if dependency not in g:
     g += f'\n\ndependencies {{\n    {dependency}\n}}\n'
 
-# Release stability: BOTH code shrinking and resource shrinking must be off.
 g = re.sub(r'isMinifyEnabled\s*=\s*true', 'isMinifyEnabled = false', g)
 g = re.sub(r'isShrinkResources\s*=\s*true', 'isShrinkResources = false', g)
 
 release_pos = g.find("release {")
 if release_pos != -1:
     block_start = release_pos + len("release {")
-    # Insert missing flags into the release block.
     release_slice = g[block_start:block_start + 700]
     additions = ""
     if "isMinifyEnabled" not in release_slice:
@@ -90,7 +94,6 @@ if release_pos != -1:
 
 gradle.write_text(g)
 
-# Keep rules for when minification is later re-enabled.
 proguard.write_text(
     """# WorkManager / Room reflection compatibility
 -keep class androidx.work.impl.WorkDatabase { *; }
@@ -100,7 +103,6 @@ proguard.write_text(
 """
 )
 
-print("Configured TEST AdMob App ID:", TEST_APP_ID)
-print("Forced WorkManager:", WORK_VERSION)
-print("Release minification: OFF")
-print("Release resource shrinking: OFF")
+print("AdMob build mode:", mode)
+print("Android AdMob App ID configured.")
+print("WorkManager:", WORK_VERSION)
