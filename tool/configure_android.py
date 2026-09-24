@@ -12,6 +12,7 @@ WORK_VERSION = "2.11.2"
 if not manifest.exists() or not gradle.exists():
     raise SystemExit("Android files not found. Run flutter create first.")
 
+# ---------- AndroidManifest ----------
 text = manifest.read_text()
 text = text.replace('android:label="asmat_gk_quiz"', 'android:label="Asmat World GK Quiz"')
 
@@ -42,6 +43,7 @@ admob_meta = (
 )
 text = text[:app_open_end + 1] + admob_meta + text[app_open_end + 1:]
 
+# Supabase email confirmation deep link.
 scheme = "com.asmatworld.asmat_gk_quiz"
 host = "login-callback"
 if f'android:scheme="{scheme}"' not in text:
@@ -61,21 +63,34 @@ if f'android:scheme="{scheme}"' not in text:
 
 manifest.write_text(text)
 
+# ---------- Gradle ----------
 g = gradle.read_text()
-dependency = f'implementation("androidx.work:work-runtime:{WORK_VERSION}")'
 
+# Force a modern WorkManager version.
+dependency = f'implementation("androidx.work:work-runtime:{WORK_VERSION}")'
 if dependency not in g:
     g += f'\n\ndependencies {{\n    {dependency}\n}}\n'
 
-if "isMinifyEnabled = false" not in g:
-    marker = 'release {'
-    idx = g.find(marker)
-    if idx != -1:
-        insert_at = idx + len(marker)
-        g = g[:insert_at] + '\n            isMinifyEnabled = false' + g[insert_at:]
+# Release stability: BOTH code shrinking and resource shrinking must be off.
+g = re.sub(r'isMinifyEnabled\s*=\s*true', 'isMinifyEnabled = false', g)
+g = re.sub(r'isShrinkResources\s*=\s*true', 'isShrinkResources = false', g)
+
+release_pos = g.find("release {")
+if release_pos != -1:
+    block_start = release_pos + len("release {")
+    # Insert missing flags into the release block.
+    release_slice = g[block_start:block_start + 700]
+    additions = ""
+    if "isMinifyEnabled" not in release_slice:
+        additions += "\n            isMinifyEnabled = false"
+    if "isShrinkResources" not in release_slice:
+        additions += "\n            isShrinkResources = false"
+    if additions:
+        g = g[:block_start] + additions + g[block_start:]
 
 gradle.write_text(g)
 
+# Keep rules for when minification is later re-enabled.
 proguard.write_text(
     """# WorkManager / Room reflection compatibility
 -keep class androidx.work.impl.WorkDatabase { *; }
@@ -87,4 +102,5 @@ proguard.write_text(
 
 print("Configured TEST AdMob App ID:", TEST_APP_ID)
 print("Forced WorkManager:", WORK_VERSION)
-print("Release minification explicitly disabled for stability testing.")
+print("Release minification: OFF")
+print("Release resource shrinking: OFF")
