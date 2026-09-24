@@ -1,0 +1,8 @@
+Supabase dashboard setting required after applying this patch:
+
+Authentication -> URL Configuration -> Redirect URLs -> Add URL:
+com.asmatworld.asmat_gk_quiz://login-callback/
+
+You can also replace the default Site URL http://localhost:3000 with the same deep link while this is an Android-only app.
+
+Existing confirmation emails may still contain the old localhost redirect because the redirect is embedded when the email is sent. Test with a fresh account or resend the confirmation email after rebuilding.

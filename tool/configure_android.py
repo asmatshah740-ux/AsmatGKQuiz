@@ -15,5 +15,27 @@ for permission in permissions:
     if permission not in text:
         pos = text.find('>') + 1
         text = text[:pos] + '\n    ' + permission + text[pos:]
+
+
+# Configure a custom deep link so Supabase email confirmations can return to the app.
+deep_link_scheme = 'com.asmatworld.asmat_gk_quiz'
+deep_link_host = 'login-callback'
+if deep_link_scheme not in text:
+    activity_close = text.find('</activity>')
+    if activity_close == -1:
+        raise SystemExit('Main activity closing tag not found in AndroidManifest.xml')
+    deep_link = f'''
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="true" />
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="{deep_link_scheme}"
+                    android:host="{deep_link_host}" />
+            </intent-filter>
+'''
+    text = text[:activity_close] + deep_link + text[activity_close:]
+
 manifest.write_text(text)
-print('Android manifest configured (ads disabled for boot-stability test).')
+print('Android manifest configured with Supabase auth deep link (ads remain disabled for boot-stability).')

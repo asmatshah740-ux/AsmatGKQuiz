@@ -24,6 +24,7 @@ class BackendService {
     final response = await _client.auth.signUp(
       email: email.trim(),
       password: password,
+      emailRedirectTo: 'com.asmatworld.asmat_gk_quiz://login-callback/',
       data: {'username': username.trim()},
     );
     return response.session != null;
