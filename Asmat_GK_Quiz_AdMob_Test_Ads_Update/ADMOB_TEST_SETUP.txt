@@ -1,0 +1,20 @@
+This update re-enables Google Mobile Ads with Google's official TEST configuration.
+
+No AdMob secrets are required yet.
+
+Android test App ID:
+ca-app-pub-3940256099942544~3347511713
+
+Android test Interstitial unit:
+ca-app-pub-3940256099942544/1033173712
+
+Android test Rewarded unit:
+ca-app-pub-3940256099942544/5224354917
+
+Behavior:
+- Interstitial opportunity after every 3 answered questions.
+- Rewarded ad only when the user chooses to watch one for an extra hint.
+- Ads initialize lazily only when an ad is needed, so app startup stays stable.
+- If an ad fails to load, the quiz continues instead of getting stuck.
+
+IMPORTANT: Keep test ads until the app is fully tested. Do not repeatedly test live ads on your own device.
